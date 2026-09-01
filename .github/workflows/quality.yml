@@ -1,0 +1,71 @@
+name: quality
+
+on:
+  push:
+    branches:
+      - main
+      - 'release/**'
+  pull_request:
+    branches:
+      - main
+      - 'release/**'
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: PHP 8.4 / Laravel ${{ matrix.laravel }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - laravel: '12'
+            testbench: '^10.0'
+          - laravel: '13'
+            testbench: '^11.0'
+
+    steps:
+      - name: Checkout plugin
+        uses: actions/checkout@v4
+
+      - name: Checkout Aura CMS
+        uses: actions/checkout@v4
+        with:
+          repository: eminiarts/aura-cms
+          ref: main
+          path: aura-cms
+
+      - name: Expose Aura CMS as the Composer path repository
+        run: ln -s "$GITHUB_WORKSPACE/aura-cms" "$GITHUB_WORKSPACE/../aura-cms"
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: dom, curl, libxml, mbstring, zip, xmlreader, xmlwriter, pcntl, pdo_sqlite, bcmath, intl, gd, exif, iconv, fileinfo
+          coverage: none
+
+      - name: Select Laravel version
+        run: composer require "laravel/framework:^${{ matrix.laravel }}.0" "orchestra/testbench:${{ matrix.testbench }}" --dev --no-interaction --no-update
+
+      - name: Install dependencies
+        run: composer update --prefer-dist --no-interaction --no-progress
+
+      - name: Validate package
+        run: composer validate --strict --no-check-publish
+
+      - name: Audit dependencies
+        run: composer audit --locked --no-interaction
+
+      - name: Check code style
+        if: matrix.laravel == '12'
+        run: vendor/bin/pint --test
+
+      - name: Run static analysis
+        if: matrix.laravel == '12'
+        run: vendor/bin/phpstan analyse --memory-limit=1G --error-format=github --no-progress
+
+      - name: Run tests
+        run: vendor/bin/pest --no-coverage
