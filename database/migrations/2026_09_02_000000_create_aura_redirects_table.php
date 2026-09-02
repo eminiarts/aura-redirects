@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -13,7 +14,7 @@ return new class extends Migration
             $table->unsignedBigInteger('user_id')->nullable()->index();
             $table->unsignedBigInteger('team_id')->nullable()->index();
             $table->string('source_path', 2048);
-            $table->string('normalized_source', 2048)->index();
+            $table->string('normalized_source', 2048);
             $table->text('destination');
             $table->string('destination_type', 24);
             $table->string('destination_host')->nullable();
@@ -32,7 +33,16 @@ return new class extends Migration
             $table->timestamp('starts_at')->nullable();
             $table->timestamp('ends_at')->nullable();
             $table->timestamps();
+        });
 
+        if (Schema::getConnection()->getDriverName() === 'mysql') {
+            DB::statement('create index aura_redirect_scope_source_index on aura_redirects (scope_hash, normalized_source(191))');
+            DB::statement('create index aura_redirect_scope_active_source_index on aura_redirects (scope_hash, active_source_key(191))');
+
+            return;
+        }
+
+        Schema::table('aura_redirects', function (Blueprint $table): void {
             $table->index(['scope_hash', 'normalized_source'], 'aura_redirect_scope_source_index');
             $table->index(['scope_hash', 'active_source_key'], 'aura_redirect_scope_active_source_index');
         });

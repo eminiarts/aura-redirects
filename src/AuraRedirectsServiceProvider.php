@@ -27,16 +27,12 @@ use Illuminate\Routing\Router;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Route;
+use ReflectionMethod;
 use Spatie\LaravelPackageTools\Package;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
 
 class AuraRedirectsServiceProvider extends PackageServiceProvider
 {
-    public function bootingPackage(): void
-    {
-        $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
-    }
-
     public function configurePackage(Package $package): void
     {
         $package
@@ -44,8 +40,8 @@ class AuraRedirectsServiceProvider extends PackageServiceProvider
             ->hasConfigFile()
             ->hasCommands(ValidateRedirectsCommand::class)
             ->hasMigrations(
-                'create_aura_redirects_table',
-                'create_aura_redirect_hit_stats_table',
+                '2026_09_02_000000_create_aura_redirects_table',
+                '2026_09_02_000001_create_aura_redirect_hit_stats_table',
             )
             ->runsMigrations();
     }
@@ -125,7 +121,8 @@ class AuraRedirectsServiceProvider extends PackageServiceProvider
 
     private function registerAuraResourceRoutes(): void
     {
-        $resource = app(Redirect::class);
+        $resourceClass = Redirect::class;
+        $resource = app($resourceClass);
         $slug = $resource->getSlug();
         $routeName = "aura.{$slug}.index";
 
@@ -133,15 +130,20 @@ class AuraRedirectsServiceProvider extends PackageServiceProvider
             return;
         }
 
-        Route::domain(config('aura.domain'))
-            ->middleware(config('aura-settings.middleware.aura-admin'))
-            ->name('aura.')
-            ->prefix(config('aura.path'))
-            ->group(function () use ($resource, $slug): void {
-                Route::get("/{$slug}", $resource::indexComponent())->name("{$slug}.index");
-                Route::get("/{$slug}/create", $resource::createComponent())->name("{$slug}.create");
-                Route::get("/{$slug}/{id}/edit", $resource::editComponent())->name("{$slug}.edit");
-                Route::get("/{$slug}/{id}", $resource::viewComponent())->name("{$slug}.view");
-            });
+        $aura = Aura::getFacadeRoot();
+
+        if (! is_object($aura) || ! method_exists($aura, 'registerRoutes')) {
+            return;
+        }
+
+        $method = new ReflectionMethod($aura, 'registerRoutes');
+
+        if ($method->getNumberOfParameters() >= 2) {
+            $aura->registerRoutes($slug, $resourceClass);
+
+            return;
+        }
+
+        $aura->registerRoutes($slug);
     }
 }

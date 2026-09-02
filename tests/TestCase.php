@@ -35,8 +35,6 @@ class TestCase extends Orchestra
         $this->defineEnvironment($app);
 
         (require __DIR__.'/../vendor/eminiarts/aura-cms/database/migrations/create_aura_tables.php.stub')->up();
-        (require __DIR__.'/../database/migrations/create_aura_redirects_table.php.stub')->up();
-        (require __DIR__.'/../database/migrations/create_aura_redirect_hit_stats_table.php.stub')->up();
     }
 
     protected function getPackageProviders($app): array
