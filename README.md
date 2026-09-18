@@ -5,7 +5,7 @@ Aura Redirects is the free, MIT-licensed Aura CMS plugin for safe HTTP redirect 
 ## Highlights
 
 - Native Aura Resource built entirely from existing Aura fields
-- Standard Redirects settings tab for external-destination policy
+- Redirects settings page (`/admin/settings/redirects`) for external-destination policy
 - Exact-path redirects only for eligible `GET` and `HEAD` requests
 - Safe internal and allowlisted external destinations
 - Protected route shielding for Aura admin, auth, API, assets, health, queue, and debug paths
