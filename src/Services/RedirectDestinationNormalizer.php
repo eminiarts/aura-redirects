@@ -78,11 +78,11 @@ class RedirectDestinationNormalizer
         $internal = $this->internalHosts($scopeHost, $siteKey)->contains($host);
 
         if (! $internal && ! $this->settings->allowsExternalDestinations()) {
-            throw new InvalidArgumentException('External destinations are disabled.');
+            throw new InvalidArgumentException('External destinations are disabled. Enable them under Settings → Redirects.');
         }
 
         if (! $internal && ! $this->allowedExternalHosts()->contains($host)) {
-            throw new InvalidArgumentException('External destination host is not allowlisted.');
+            throw new InvalidArgumentException('External destination host is not allowlisted. Add it under Settings → Redirects.');
         }
 
         $location = $scheme.'://'.$host.$path
