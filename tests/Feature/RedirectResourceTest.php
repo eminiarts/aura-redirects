@@ -1,6 +1,7 @@
 <?php
 
 use Aura\Base\Livewire\Resource\Create;
+use Aura\Base\Settings\SettingsStore;
 use Aura\Redirects\Models\Redirect;
 use Illuminate\Validation\ValidationException;
 
@@ -17,8 +18,6 @@ it('creates redirects through the Aura resource create component', function (): 
         ->set('form.fields.redirect_status', '302')
         ->set('form.fields.enabled', true)
         ->set('form.fields.preserve_query', true)
-        ->set('form.fields.host', 'www.example.test')
-        ->set('form.fields.site_key', 'default')
         ->set('form.fields.notes', 'Launch campaign redirect')
         ->call('save')
         ->assertHasNoErrors();
@@ -28,7 +27,29 @@ it('creates redirects through the Aura resource create component', function (): 
     expect($redirect)->not->toBeNull()
         ->and($redirect->normalized_source)->toBe('/campaign')
         ->and($redirect->destination_type)->toBe('internal_path')
+        ->and($redirect->host)->toBe('www.example.test')
+        ->and($redirect->site_key)->toBe('default')
         ->and($redirect->team_id)->toBe($manager->current_team_id);
+});
+
+it('uses the registered Redirect settings for external destination policy', function (): void {
+    createRedirectManager();
+
+    expect(fn () => makeRedirect([
+        'source_path' => '/external-disabled',
+        'destination' => 'https://external.example/path',
+    ]))->toThrow(ValidationException::class, 'External destinations are disabled');
+
+    app(SettingsStore::class)->put('redirects-allow-external-destinations', true);
+    app(SettingsStore::class)->put('redirects-allowed-external-hosts', "external.example\nother.example");
+
+    $redirect = makeRedirect([
+        'source_path' => '/external-enabled',
+        'destination' => 'https://external.example/path',
+    ]);
+
+    expect($redirect->destination_type)->toBe('external_url')
+        ->and($redirect->destination_host)->toBe('external.example');
 });
 
 it('synchronizes Team scoped redirect permissions', function (): void {

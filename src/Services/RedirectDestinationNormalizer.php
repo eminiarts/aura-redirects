@@ -3,6 +3,7 @@
 namespace Aura\Redirects\Services;
 
 use Aura\Redirects\Data\NormalizedDestination;
+use Aura\Redirects\Settings\RedirectSettings;
 use Aura\Redirects\Support\RedirectScope;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
@@ -12,6 +13,7 @@ class RedirectDestinationNormalizer
 {
     public function __construct(
         private readonly RedirectPathNormalizer $pathNormalizer,
+        private readonly RedirectSettings $settings,
     ) {}
 
     public function normalize(string $destination, ?string $scopeHost, ?string $siteKey): NormalizedDestination
@@ -75,7 +77,7 @@ class RedirectDestinationNormalizer
         $fragment = isset($parts['fragment']) ? (string) $parts['fragment'] : null;
         $internal = $this->internalHosts($scopeHost, $siteKey)->contains($host);
 
-        if (! $internal && ! config('aura-redirects.allow_external_destinations', false)) {
+        if (! $internal && ! $this->settings->allowsExternalDestinations()) {
             throw new InvalidArgumentException('External destinations are disabled.');
         }
 
@@ -100,16 +102,11 @@ class RedirectDestinationNormalizer
     }
 
     /**
-     * @return Collection<int, non-falsy-string>
+     * @return Collection<int, string>
      */
     private function allowedExternalHosts(): Collection
     {
-        return collect((array) config('aura-redirects.allowed_external_hosts', []))
-            ->map(fn (string $host): string => RedirectScope::normalizeHost($host))
-            ->filter()
-            ->map(fn (string $host): string => $host)
-            ->unique()
-            ->values();
+        return collect($this->settings->allowedExternalHosts());
     }
 
     /**

@@ -5,6 +5,7 @@ namespace Aura\Redirects\Models;
 use Aura\Base\Fields\Boolean;
 use Aura\Base\Fields\Datetime;
 use Aura\Base\Fields\Number;
+use Aura\Base\Fields\Panel;
 use Aura\Base\Fields\Select;
 use Aura\Base\Fields\Text;
 use Aura\Base\Fields\Textarea;
@@ -96,12 +97,15 @@ class Redirect extends Resource
 
     public static function getFields(): array
     {
-        $defaultSiteKey = (string) config('aura-redirects.resolver.default_site_key', 'default');
-        $defaultHost = RedirectScope::normalizeHost(parse_url((string) config('app.url'), PHP_URL_HOST));
-
         return [
-            self::field('Source Path', 'source_path', Text::class, 'required|max:2048', true, true, true, true),
-            self::field('Destination', 'destination', Text::class, 'required|max:4096', true, true, true, true),
+            self::field('Redirect', 'redirect-panel', Panel::class, '', false, true, true, false),
+            self::field('Source Path', 'source_path', Text::class, 'required|max:2048', true, true, true, true, [
+                'style' => ['width' => '50'],
+            ]),
+            self::field('Destination', 'destination', Text::class, 'required|max:4096', true, true, true, true, [
+                'style' => ['width' => '50'],
+            ]),
+            self::field('Behavior', 'behavior-panel', Panel::class, '', false, true, true, false),
             self::field('HTTP Status', 'redirect_status', Select::class, 'required|integer|in:301,302,307,308', true, true, true, false, [
                 'options' => [
                     '301' => '301 Permanent',
@@ -110,21 +114,24 @@ class Redirect extends Resource
                     '308' => '308 Permanent, method-preserving',
                 ],
                 'default' => '302',
+                'style' => ['width' => '50'],
             ]),
             self::field('Enabled', 'enabled', Boolean::class, 'boolean', true, true, true, false, [
                 'default' => true,
+                'style' => ['width' => '25'],
             ]),
             self::field('Preserve Query', 'preserve_query', Boolean::class, 'boolean', true, true, true, false, [
                 'default' => false,
+                'style' => ['width' => '25'],
             ]),
-            self::field('Hostname', 'host', Text::class, 'required|max:255', true, true, true, true, [
-                'default' => $defaultHost !== '' ? $defaultHost : null,
+            self::field('Schedule', 'schedule-panel', Panel::class, '', false, true, true, false),
+            self::field('Starts At', 'starts_at', Datetime::class, 'nullable|date', true, true, true, false, [
+                'style' => ['width' => '50'],
             ]),
-            self::field('Site Key', 'site_key', Text::class, 'required|max:120', true, true, true, true, [
-                'default' => $defaultSiteKey,
+            self::field('Ends At', 'ends_at', Datetime::class, 'nullable|date|after_or_equal:starts_at', true, true, true, false, [
+                'style' => ['width' => '50'],
             ]),
-            self::field('Starts At', 'starts_at', Datetime::class, 'nullable|date', true, true, true, false),
-            self::field('Ends At', 'ends_at', Datetime::class, 'nullable|date|after_or_equal:starts_at', true, true, true, false),
+            self::field('Notes', 'notes-panel', Panel::class, '', false, true, true, false),
             self::field('Notes', 'notes', Textarea::class, 'nullable|string|max:5000', false, true, true, false),
             self::field('Hit Count', 'hit_count', Number::class, '', true, false, true, false),
             self::field('Last Hit At', 'last_hit_at', Datetime::class, '', true, false, true, false),

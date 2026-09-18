@@ -5,6 +5,7 @@ Aura Redirects is the free, MIT-licensed Aura CMS plugin for safe HTTP redirect 
 ## Highlights
 
 - Native Aura Resource built entirely from existing Aura fields
+- Standard Redirects settings tab for external-destination policy
 - Exact-path redirects only for eligible `GET` and `HEAD` requests
 - Safe internal and allowlisted external destinations
 - Protected route shielding for Aura admin, auth, API, assets, health, queue, and debug paths
@@ -66,8 +67,6 @@ If host or Team resolution is missing or ambiguous, the middleware does nothing.
 - `redirect_status`
 - `enabled`
 - `preserve_query`
-- `host`
-- `site_key`
 - `starts_at`
 - `ends_at`
 - `notes`
@@ -75,6 +74,18 @@ If host or Team resolution is missing or ambiguous, the middleware does nothing.
 - `last_hit_at`
 - `created_at`
 - `updated_at`
+
+`host` and `site_key` remain internal scope columns, but are inferred from the
+configured request/site context when a redirect is saved. Editors do not need
+to enter routing internals. Source and destination fields, as well as the two
+schedule dates, are arranged side by side in the admin form.
+
+## Redirect settings
+
+Open **Settings → Redirects** to enable external destinations and maintain the
+external-host allowlist. External redirects remain disabled by default, and
+enabling them does not bypass the allowlist. The published config values remain
+the initial fallback until settings are saved.
 
 ## Status Guidance
 

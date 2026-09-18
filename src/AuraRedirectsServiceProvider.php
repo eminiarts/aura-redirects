@@ -20,6 +20,8 @@ use Aura\Redirects\Services\RedirectPathNormalizer;
 use Aura\Redirects\Services\RedirectPermissionRegistrar;
 use Aura\Redirects\Services\RedirectRepository;
 use Aura\Redirects\Services\RedirectValidator;
+use Aura\Redirects\Settings\RedirectSettings;
+use Aura\Redirects\Settings\RedirectSettingsPage;
 use Aura\Redirects\Support\QueryStringMerger;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Contracts\Http\Kernel as HttpKernel;
@@ -62,11 +64,13 @@ class AuraRedirectsServiceProvider extends PackageServiceProvider
         $this->app->singleton(RedirectDiagnostics::class);
         $this->app->singleton(RedirectHitRecorder::class);
         $this->app->singleton(RedirectPermissionRegistrar::class);
+        $this->app->singleton(RedirectSettings::class);
     }
 
     public function packageBooted(): void
     {
         Aura::registerResources([Redirect::class]);
+        Aura::registerSettingsPages('eminiarts/aura-redirects', [RedirectSettingsPage::make()]);
         $this->registerAuraResourceRoutes();
 
         Gate::policy(Redirect::class, RedirectPolicy::class);

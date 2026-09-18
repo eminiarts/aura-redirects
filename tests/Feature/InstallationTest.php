@@ -1,6 +1,7 @@
 <?php
 
 use Aura\Base\Facades\Aura;
+use Aura\Base\Settings\SettingsRegistry;
 use Aura\Redirects\Middleware\HandleAuraRedirects;
 use Aura\Redirects\Models\Redirect;
 use Illuminate\Routing\Router;
@@ -17,14 +18,15 @@ it('registers the redirect resource and prepends the middleware to the web group
         'redirect_status',
         'enabled',
         'preserve_query',
-        'host',
-        'site_key',
         'starts_at',
         'ends_at',
         'notes',
         'hit_count',
         'last_hit_at',
-    );
+    )->not->toContain('host', 'site_key')
+        ->and($fields['starts_at']['style']['width'])->toBe('50')
+        ->and($fields['ends_at']['style']['width'])->toBe('50')
+        ->and(app(SettingsRegistry::class)->has('redirects'))->toBeTrue();
 
     /** @var Router $router */
     $router = app('router');
