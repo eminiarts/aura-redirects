@@ -85,7 +85,10 @@ schedule dates, are arranged side by side in the admin form.
 Open **Settings → Redirects** to enable external destinations and maintain the
 external-host allowlist. External redirects remain disabled by default, and
 enabling them does not bypass the allowlist. The published config values remain
-the initial fallback until settings are saved.
+the initial fallback until settings are saved. The registered settings tab is
+available on Aura CMS 2.x; supported legacy Aura CMS installations continue to
+use the equivalent `allow_external_destinations` and `allowed_external_hosts`
+config values.
 
 ## Status Guidance
 

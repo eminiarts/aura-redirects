@@ -4,6 +4,7 @@ namespace Aura\Redirects;
 
 use Aura\Base\Facades\Aura;
 use Aura\Base\Resources\Team;
+use Aura\Base\Settings\SettingsPage;
 use Aura\Redirects\Commands\ValidateRedirectsCommand;
 use Aura\Redirects\Contracts\ResolvesRedirectContext;
 use Aura\Redirects\Middleware\HandleAuraRedirects;
@@ -70,7 +71,7 @@ class AuraRedirectsServiceProvider extends PackageServiceProvider
     public function packageBooted(): void
     {
         Aura::registerResources([Redirect::class]);
-        Aura::registerSettingsPages('eminiarts/aura-redirects', [RedirectSettingsPage::make()]);
+        $this->registerSettingsPage();
         $this->registerAuraResourceRoutes();
 
         Gate::policy(Redirect::class, RedirectPolicy::class);
@@ -78,6 +79,19 @@ class AuraRedirectsServiceProvider extends PackageServiceProvider
         $this->registerMiddleware();
         $this->registerPermissions();
         $this->registerSchedule();
+    }
+
+    private function registerSettingsPage(): void
+    {
+        $aura = Aura::getFacadeRoot();
+
+        if (! class_exists(SettingsPage::class)
+            || ! is_object($aura)
+            || ! method_exists($aura, 'registerSettingsPages')) {
+            return;
+        }
+
+        $aura->registerSettingsPages('eminiarts/aura-redirects', [RedirectSettingsPage::make()]);
     }
 
     private function registerMiddleware(): void
